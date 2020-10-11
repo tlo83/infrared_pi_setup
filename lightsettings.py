@@ -109,13 +109,15 @@ if (phoneping):
         elif time >= switchtime and time < poweroff:
             logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau')
             os.system("timeout 3 irsend send_once light KEY_F8")
-            logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
-            os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
         else:
             logging.debug(currenttime() + ': ' + 'Power off')
             os.system("timeout 3 irsend send_once light KEY_STOP")
-            logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
-            os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
     # Weekday Timer
     else:
         if time >= poweron and time < switchtime:
@@ -132,11 +134,13 @@ if (phoneping):
         else:
             logging.debug(currenttime() + ': ' + 'Execute: Power Off')
             os.system("timeout 3 irsend send_once light KEY_STOP")
-            logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
-            os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
 else:
     logging.debug(currenttime() + ': ' + hostname + ' nicht verbunden!')
     logging.debug(currenttime() + ': ' + 'Execute: Power Off')
     os.system("timeout 3 irsend send_once light KEY_STOP")
-    logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
-    os.system("sudo rm /home/pi/cronjobs/colorswitch")
+    if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+        logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+        os.system("sudo rm /home/pi/cronjobs/colorswitch")
