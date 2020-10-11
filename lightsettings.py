@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 import subprocess 
 from datetime import datetime
 import os
@@ -107,6 +107,8 @@ if (phoneping):
                 logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt')
                 os.system("sudo touch /home/pi/cronjobs/colorswitch")
         elif time >= switchtime and time < poweroff:
+            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend')
+            os.system("timeout 3 irsend send_once light KEY_POWER")
             logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau')
             os.system("timeout 3 irsend send_once light KEY_F8")
             if os.path.isfile('/home/pi/cronjobs/colorswitch'):
@@ -129,6 +131,8 @@ if (phoneping):
                 logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt')
                 os.system("touch /home/pi/cronjobs/colorswitch")
         elif time >= switchtime and time < poweroff:
+            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday')
+            os.system("timeout 3 irsend send_once light KEY_POWER")
             logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau')
             os.system("timeout 3 irsend send_once light KEY_F8")
         else:
