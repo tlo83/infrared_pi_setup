@@ -3,6 +3,7 @@ import subprocess
 from datetime import datetime
 import os
 import logging
+import time
 
 # log filepath
 filepath = '/var/log/PyLight/'
@@ -85,6 +86,7 @@ day = datetime.today().weekday()
 if os.stat(filepath + 'debug.log').st_size == 0:
     logging.info(currenttime() + ': ' + 'Settings:')
     logging.info(currenttime() + ': ' + 'Hostname: ' + hostname)
+    logging.debug(currenttime() + ': ' + 'Tag: ' + weekday(day))
     logging.info(currenttime() + ': ' + 'Power on time (weekday): ' + poweron)
     logging.info(currenttime() + ': ' + 'Power on time (weekend): ' + poweronweekend)
     logging.info(currenttime() + ': ' + 'Switch mode time: ' + switchtime)
@@ -95,13 +97,13 @@ phoneping = ping(hostname)
 if (phoneping):
     
     logging.debug(currenttime() + ': ' + hostname + " verbunden!")
-    logging.debug(currenttime() + ': ' + 'Tag: ' + weekday(day)) 
     # Weekend Timer
     if day in [5, 6]:
         if time >= poweronweekend and time < switchtime:
             logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend')
             os.system("timeout 3 irsend send_once light KEY_POWER")
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                time.sleep(3)
                 logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf')
                 os.system("timeout 3 irsend send_once light KEY_FN_F2")
                 logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt')
