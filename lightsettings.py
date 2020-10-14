@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import subprocess 
+import subprocess, signal 
 from datetime import datetime
 import os
 import logging
 import time
+import psutil
 
 # log filepath
 filepath = '/var/log/PyLight/'
@@ -15,10 +16,10 @@ hostname = "OnePlus3T"
 poweron = '06:00:00'
 # power on timestamp for a weekend
 poweronweekend = '07:00:00'
-# power off timestamp
-poweroff = '22:00:00'
 # switch light mode timestamp
 switchtime = '19:00:00'
+# power off timestamp
+poweroff = '22:00:00'
 
 def currenttime():
     return (datetime.now().time()).strftime("%H:%M:%S")
@@ -57,6 +58,20 @@ def month(arg):
             }
     return switch.get(arg, "Ungültiger Monat")
 
+# irsend sometimes hangs up and needs to be killed
+def kill_process(name):
+    listOfProcessObjects = []
+    for proc in psutil.process_iter():
+        try:
+            pinfo = proc.as_dict(attrs=['pid', 'name'])
+            if name.lower() in pinfo['name'].lower() :
+                logging.debug(currenttime() + ': ' + 'Killing process irsend!')
+                listOfProcessObjects.append(pinfo['pid'])
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess) :
+            passi
+    for pid in listOfProcessObjects:
+        os.kill(pid, 9)
+
 if os.path.isfile(filepath + 'debug.log'):
     filedateday = (datetime.fromtimestamp(os.stat(filepath + 'debug.log').st_mtime)).strftime("%d")
     today = (datetime.now()).strftime('%d')
@@ -78,7 +93,6 @@ else:
 
 logging.basicConfig(filename=filepath + 'debug.log', level=logging.DEBUG)
 
-#time = (datetime.now().time()).strftime("%H:%M:%S")
 time = currenttime()
 # weekday: 0 = monday, 6 = sunday
 day = datetime.today().weekday()
@@ -100,53 +114,66 @@ if (phoneping):
     # Weekend Timer
     if day in [5, 6]:
         if time >= poweronweekend and time < switchtime:
-            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend')
-            os.system("timeout 3 irsend send_once light KEY_POWER")
+            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend [1]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
-                time.sleep(3)
-                logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf')
-                os.system("timeout 3 irsend send_once light KEY_FN_F2")
-                logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt')
+                kill_process('irsend')
+                logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf [1]')
+                os.system("timeout 1 irsend send_once light KEY_FN_F2")
+                logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt [1]')
                 os.system("sudo touch /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [1]')
         elif time >= switchtime and time < poweroff:
-            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend')
-            os.system("timeout 3 irsend send_once light KEY_POWER")
-            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau')
-            os.system("timeout 3 irsend send_once light KEY_F8")
+            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend [2]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
+            kill_process("irsend")
+            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau [2]')
+            os.system("timeout 1 irsend send_once light KEY_F8")
             if os.path.isfile('/home/pi/cronjobs/colorswitch'):
-                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [2]')
                 os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [2]')
         else:
-            logging.debug(currenttime() + ': ' + 'Power off')
-            os.system("timeout 3 irsend send_once light KEY_STOP")
+            logging.debug(currenttime() + ': ' + 'Power off [3]')
+            os.system("timeout 1 irsend send_once light KEY_STOP")
             if os.path.isfile('/home/pi/cronjobs/colorswitch'):
-                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [3]')
                 os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [3]')
     # Weekday Timer
     else:
         if time >= poweron and time < switchtime:
-            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday')
-            os.system("timeout 3 irsend send_once light KEY_POWER")
+            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday [4]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
-                logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf')
-                os.system("timeout 3 irsend send_once light KEY_FN_F2")
-                logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt')
+                kill_process("irsend")
+                logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf [4]')
+                os.system("timeout 1 irsend send_once light KEY_FN_F2")
+                logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt [4]')
                 os.system("touch /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [4]')
         elif time >= switchtime and time < poweroff:
-            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday')
-            os.system("timeout 3 irsend send_once light KEY_POWER")
-            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau')
-            os.system("timeout 3 irsend send_once light KEY_F8")
-        else:
-            logging.debug(currenttime() + ': ' + 'Execute: Power Off')
-            os.system("timeout 3 irsend send_once light KEY_STOP")
+            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday [5]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
+            kill_process("irsend")
+            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau [5]')
+            os.system("timeout 1 irsend send_once light KEY_F8")
             if os.path.isfile('/home/pi/cronjobs/colorswitch'):
-                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [5]')
                 os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [5]')
+        else:
+            logging.debug(currenttime() + ': ' + 'Execute: Power Off [6]')
+            os.system("timeout 1 irsend send_once light KEY_STOP")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [6]')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [6]')
 else:
-    logging.debug(currenttime() + ': ' + hostname + ' nicht verbunden!')
-    logging.debug(currenttime() + ': ' + 'Execute: Power Off')
-    os.system("timeout 3 irsend send_once light KEY_STOP")
+    logging.debug(currenttime() + ': ' + hostname + ' nicht verbunden! [7]')
+    logging.debug(currenttime() + ': ' + 'Execute: Power Off [7]')
+    os.system("timeout 1 irsend send_once light KEY_STOP")
     if os.path.isfile('/home/pi/cronjobs/colorswitch'):
-        logging.debug(currenttime() + ': ' + 'Lösche colorswitch file')
+        logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [7]')
         os.system("sudo rm /home/pi/cronjobs/colorswitch")
+    logging.debug(currenttime() + ': ' + 'End [7]')
