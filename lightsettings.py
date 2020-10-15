@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-import subprocess, signal 
-from datetime import datetime
+import subprocess 
+from datetime import datetime, timedelta
 import os
 import logging
 import time
 import psutil
+import requests
 
 # log filepath
 filepath = '/var/log/PyLight/'
@@ -12,14 +13,23 @@ filepath = '/var/log/PyLight/'
 # hostname of device
 hostname = "OnePlus3T"
 
+r = requests.get(url='https://api.sunrise-sunset.org/json?lat=51.3406321&lng=12.3747329')
+sunrise = r.json()['results']['sunrise'][:-3]
+sunset = r.json()['results']['sunset'][:-3]
+
 # light on timestamp for a weekday
 poweron = '06:00:00'
 # power on timestamp for a weekend
 poweronweekend = '07:00:00'
 # switch light mode timestamp
-switchtime = '19:00:00'
+#switchtime = '19:00:00'
+switchtime = datetime.strftime(datetime.strptime(sunset, "%H:%M:%S") + timedelta(hours=14), "%H:%M:%S")
 # power off timestamp
 poweroff = '22:00:00'
+
+print(sunrise)
+print(sunset)
+print(switchtime)
 
 def currenttime():
     return (datetime.now().time()).strftime("%H:%M:%S")
