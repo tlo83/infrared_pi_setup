@@ -13,6 +13,7 @@ filepath = '/var/log/PyLight/'
 # hostname of device
 hostname = "OnePlus3T"
 
+# get sunrise and sunset times
 r = requests.get(url='https://api.sunrise-sunset.org/json?lat=51.3406321&lng=12.3747329')
 sunrise = r.json()['results']['sunrise'][:-3]
 sunset = r.json()['results']['sunset'][:-3]
@@ -22,14 +23,12 @@ poweron = '06:00:00'
 # power on timestamp for a weekend
 poweronweekend = '07:00:00'
 # switch light mode timestamp
+# time synced with home assistant
 #switchtime = '19:00:00'
-switchtime = datetime.strftime(datetime.strptime(sunset, "%H:%M:%S") + timedelta(hours=14), "%H:%M:%S")
+switchtime = datetime.strftime(datetime.strptime(sunset, "%H:%M:%S") + timedelta(hours=14, minutes=3), "%H:%M:%S")
+switchsunset = datetime.strftime(datetime.strptime(sunrise, "%H:%M:%S") + timedelta(hours=2, minutes=28), "%H:%M:%S")
 # power off timestamp
 poweroff = '22:00:00'
-
-print(sunrise)
-print(sunset)
-print(switchtime)
 
 def currenttime():
     return (datetime.now().time()).strftime("%H:%M:%S")
@@ -113,7 +112,8 @@ if os.stat(filepath + 'debug.log').st_size == 0:
     logging.debug(currenttime() + ': ' + 'Tag: ' + weekday(day))
     logging.info(currenttime() + ': ' + 'Power on time (weekday): ' + poweron)
     logging.info(currenttime() + ': ' + 'Power on time (weekend): ' + poweronweekend)
-    logging.info(currenttime() + ': ' + 'Switch mode time: ' + switchtime)
+    logging.info(currenttime() + ': ' + 'Sunrise: ' + switchsunrise)
+    logging.info(currenttime() + ': ' + 'Sunset: ' + switchtime)
     logging.info(currenttime() + ': ' + 'Power off time: ' + poweroff)
 
 phoneping = ping(hostname)
@@ -123,7 +123,17 @@ if (phoneping):
     logging.debug(currenttime() + ': ' + hostname + " verbunden!")
     # Weekend Timer
     if day in [5, 6]:
-        if time >= poweronweekend and time < switchtime:
+        if time >= poweronweekend and time < switchsunset:
+            logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend [0]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
+            kill_process("irsend")
+            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau [0]')
+            os.system("timeout 1 irsend send_once light KEY_F8")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [0]')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [0]')
+        elif time >= switchsunset and time < switchtime:
             logging.debug(currenttime() + ': ' + 'Execute: Power on Weekend [1]')
             os.system("timeout 2 irsend send_once light KEY_POWER")
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
@@ -152,7 +162,17 @@ if (phoneping):
             logging.debug(currenttime() + ': ' + 'End [3]')
     # Weekday Timer
     else:
-        if time >= poweron and time < switchtime:
+        if time >= poweron and time < switchsunset:
+            logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday [00]')
+            os.system("timeout 2 irsend send_once light KEY_POWER")
+            kill_process("irsend")
+            logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu blau [00]')
+            os.system("timeout 1 irsend send_once light KEY_F8")
+            if os.path.isfile('/home/pi/cronjobs/colorswitch'):
+                logging.debug(currenttime() + ': ' + 'Lösche colorswitch file [00]')
+                os.system("sudo rm /home/pi/cronjobs/colorswitch")
+            logging.debug(currenttime() + ': ' + 'End [00]')
+        elif time >= switchsunset and time < switchtime:
             logging.debug(currenttime() + ': ' + 'Execute: Power On Weekday [4]')
             os.system("timeout 2 irsend send_once light KEY_POWER")
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
