@@ -26,7 +26,7 @@ poweronweekend = '07:00:00'
 # time synced with home assistant
 #switchtime = '19:00:00'
 switchtime = datetime.strftime(datetime.strptime(sunset, "%H:%M:%S") + timedelta(hours=14, minutes=3), "%H:%M:%S")
-switchsunset = datetime.strftime(datetime.strptime(sunrise, "%H:%M:%S") + timedelta(hours=2, minutes=28), "%H:%M:%S")
+switchsunset = datetime.strftime(datetime.strptime(sunrise, "%H:%M:%S") + timedelta(hours=2, minutes=0), "%H:%M:%S")
 # power off timestamp
 poweroff = '22:00:00'
 
@@ -109,10 +109,10 @@ day = datetime.today().weekday()
 if os.stat(filepath + 'debug.log').st_size == 0:
     logging.info(currenttime() + ': ' + 'Settings:')
     logging.info(currenttime() + ': ' + 'Hostname: ' + hostname)
-    logging.debug(currenttime() + ': ' + 'Tag: ' + weekday(day))
+    logging.info(currenttime() + ': ' + 'Tag: ' + weekday(day))
     logging.info(currenttime() + ': ' + 'Power on time (weekday): ' + poweron)
     logging.info(currenttime() + ': ' + 'Power on time (weekend): ' + poweronweekend)
-    logging.info(currenttime() + ': ' + 'Sunrise: ' + switchsunrise)
+    logging.info(currenttime() + ': ' + 'Sunrise: ' + switchsunset)
     logging.info(currenttime() + ': ' + 'Sunset: ' + switchtime)
     logging.info(currenttime() + ': ' + 'Power off time: ' + poweroff)
 
@@ -178,7 +178,7 @@ if (phoneping):
             if not os.path.isfile('/home/pi/cronjobs/colorswitch'):
                 kill_process("irsend")
                 logging.debug(currenttime() + ': ' + 'Execute: Wechsel zu Farbverlauf [4]')
-                os.system("timeout 1 irsend send_once light KEY_FN_F2")
+                os.system("timeout 2 irsend send_once light KEY_FN_F2")
                 logging.debug(currenttime() + ': ' + 'Execute: colorswitch file wird erstellt [4]')
                 os.system("touch /home/pi/cronjobs/colorswitch")
             logging.debug(currenttime() + ': ' + 'End [4]')
