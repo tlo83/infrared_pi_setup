@@ -27,6 +27,11 @@ poweronweekend = '07:00:00'
 #switchtime = '19:00:00'
 switchtime = datetime.strftime(datetime.strptime(sunset, "%H:%M:%S") + timedelta(hours=14, minutes=3), "%H:%M:%S")
 switchsunset = datetime.strftime(datetime.strptime(sunrise, "%H:%M:%S") + timedelta(hours=2, minutes=0), "%H:%M:%S")
+
+# check if sunrise is before poweron timestamp
+if switchtime < poweron:
+    switchtime = poweron
+
 # power off timestamp
 poweroff = '22:00:00'
 
