@@ -11,7 +11,7 @@ import requests
 filepath = '/var/log/PyLight/'
 
 # hostname of device
-hostname = "OnePlus3T"
+hostname = "192.168.0.41"
 
 # get sunrise and sunset times
 r = requests.get(url='https://api.sunrise-sunset.org/json?lat=51.3406321&lng=12.3747329')
